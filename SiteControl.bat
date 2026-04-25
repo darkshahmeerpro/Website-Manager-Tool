@@ -18,7 +18,7 @@ echo  CURRENTLY BLOCKED:
 if exist blocked_sites.txt (
     for /f "tokens=*" %%a in (blocked_sites.txt) do echo    - %%a
 ) else (
-    echo    (None)
+    echo     - None 
 )
 echo --------------------------------------------------
 echo  1. BLOCK a new website

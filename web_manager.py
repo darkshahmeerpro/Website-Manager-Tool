@@ -2,14 +2,18 @@ import sys
 import os
 import re
 
+# This finds the AppData/Roaming folder on any Windows PC
+appdata_folder = os.path.join(os.environ['APPDATA'], "WebsiteManager")
+if not os.path.exists(appdata_folder):
+    os.makedirs(appdata_folder)
+
 hosts_path = r"C:\Windows\System32\drivers\etc\hosts"
-log_file = "blocked_sites.txt"
+log_file = os.path.join(appdata_folder, "blocked_sites.txt")
 redirect = "127.0.0.1"
 
 def is_valid_site(site):
-    # Regex to check if input looks like a real domain (e.g., site.com)
     pattern = re.compile(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-    return list(pattern.finditer(site))
+    return pattern.match(site)
 
 def get_blocked_list():
     if not os.path.exists(log_file): return []
@@ -23,7 +27,7 @@ def update_log(site_list):
 
 def manage_site(site, choice):
     if not is_valid_site(site):
-        print(f"\n[!] ERROR: '{site}' is not a valid website format. Use 'site.com'.")
+        print(f"\n[!] ERROR: '{site}' is not a valid website format.")
         return
 
     domains = [site, f"www.{site}"] if not site.startswith("www.") else [site, site.replace("www.", "")]
@@ -40,7 +44,7 @@ def manage_site(site, choice):
                         f.write(f"\n{redirect} {d}")
             if site not in current_blocked:
                 current_blocked.append(site)
-            print(f"\n>>> SUCCESS: {site} is now blocked.")
+            print(f"\n>>> SUCCESS: {site} blocked.")
 
         elif choice == "2": # UNBLOCK
             new_lines = [line for line in lines if not any(d in line for d in domains)]
@@ -48,12 +52,12 @@ def manage_site(site, choice):
                 f.writelines(new_lines)
             if site in current_blocked:
                 current_blocked.remove(site)
-            print(f"\n>>> SUCCESS: {site} is now unblocked.")
+            print(f"\n>>> SUCCESS: {site} unblocked.")
 
         update_log(current_blocked)
 
     except PermissionError:
-        print("\n[!] CRITICAL ERROR: Access Denied. Run as Admin.")
+        print("\n[!] ERROR: Access Denied. Run as Admin.")
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
